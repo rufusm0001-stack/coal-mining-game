@@ -85,6 +85,8 @@ version mid-edit via Team Create.
 
 _(Update this section together at the start of each session)_
 
-- [ ] Milestone: e.g. "Vertical slice: mine ore -> sell -> buy pickaxe upgrade"
+- [x] Vertical slice: mine coal -> bag fills -> sell at stand (see STATUS.md 2026-09-28)
+- [ ] Next: publish the two pickaxe animations, DataStore saving, cash display + shop UI,
+      place more coal nodes, real sell stand / shopkeeper art
 - Person A working on: _fill in_
 - Person B working on: _fill in_
