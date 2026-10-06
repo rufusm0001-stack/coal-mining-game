@@ -1,17 +1,20 @@
 # Art spend ledger
 
-Budget set by Rufus on 2026-10-06: about $10 Meshy and $5 Gemini.
+Budget set by Rufus on 2026-10-06: about $10 Meshy and $5 Gemini. Meshy balance on
+2026-10-06 was 3,840 credits. Gemini's prepaid credit is empty (HTTP 402), so reference images
+run on OpenAI until it's topped up.
+
+## Verdicts
+
+- `refs/style_*.png` (first test, gpt-image-1-mini low): the pickaxe read as a hammer. Superseded.
+- `refs/pickaxe_starter`, `coal_node`, `minecart`, `great_furnace` (gpt-image-2 medium):
+  real brick-built look with studs everywhere. Sent to Meshy.
+
+## Spend (newest rows appended at the bottom by the scripts)
 
 | Date | Provider | What | Cost |
 |---|---|---|---|
-| 2026-10-06 | Gemini | 4 style-test images. All failed with HTTP 402: prepaid credit depleted. | $0 |
-| 2026-10-06 | OpenAI gpt-image-1-mini (low) | Style test: pickaxe, cart, furnace. The miner NPC was blocked by moderation. | ~$0.02 |
-
-**Total so far:** about $0.02. Meshy unused.
-
-## Style-test verdicts
-
-- `refs/style_cart_coal.png`: right style. Send to Meshy for the cart model.
-- `refs/style_great_furnace.png`: great character. Send to Meshy for the furnace.
-- `refs/style_pickaxe_stone.png`: reads as a hammer. Re-prompt with a curved, pointed pick head.
-- Miner NPC: reword the prompt (it tripped OpenAI moderation) and retry.
+| 2026-10-06 | Gemini | 4 style-test images, all failed with HTTP 402 | $0 |
+| 2026-10-06 | OpenAI gpt-image-1-mini low | style test: 3 images (NPC blocked by moderation) | ~$0.02 |
+| 2026-10-06 | OpenAI gpt-image-2 medium | 9 reference images for Meshy | ~$0.40 (estimate) |
+| 2026-10-06 | Meshy image-to-3D | pickaxe_starter, coal_node, minecart, great_furnace | 270 credits |
