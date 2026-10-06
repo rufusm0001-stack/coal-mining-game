@@ -47,6 +47,98 @@ Heads up:
 
 ## Log
 
+### [2026-10-06] — Rufus's Claude — v2 rebuild, part 1: stud world + full core loop
+Rufus decided the v2 design (see GAME_SPEC.md) and handed the whole rebuild to this session.
+His brother's Claude should read this entry and GAME_SPEC.md, and play/review rather than edit
+until TASKS.md says the lanes are back.
+
+**Archived, not deleted:** everything ChatGPT/Codex built (town, house lobby, 104 coal nodes,
+expeditions/parties, pets, eggs, robots, story, journal, all 22 client scripts, its HUD,
+lighting and terrain) is in `ServerStorage.Archive_ChatGPT_20261006`, bucketed by the
+service it came from.
+- Terrain was copied to `Archive_ChatGPT_20261006.TerrainRegion` and then cleared.
+- Old CollectionService tags were stripped inside the archive and kept as `ArchivedTag_*`
+  attributes, so new systems don't pick up archived instances.
+
+Verified in Play, with no console errors:
+- the lift takes you down to the mine
+- holding left click mines coal into the cart (25 per hit)
+- the cart follows you and fills visibly
+- walking into the furnace dumps the cart, and the flames/steam flare
+- gas puffs run along the pipes, and standing on a pad collected $75 from 75 coal
+- the minimap shows each room's % and outlines the room you're in
+
+**Not tested:** finding the diamond. One coal unit in a million, so it needs a debug
+trigger next session.
+
+Touched (Instance paths):
+- **World:**
+  - `Workspace.Lobby`: grass plateau, path, `SpawnLocation`, `MineLift.LiftPad`
+    (LiftTarget = Mine)
+  - `Workspace.Mine`, 300 studs below:
+    - `Shell` (floor, ceiling, walls, doorways, rugs, glowing pillars, hall lamp)
+    - `Rooms` (8 invisible zone parts N, NE, E, SE, S, SW, W, NW, with RoomName / Accent /
+      TotalUnits / MinedUnits attributes)
+    - `GreatFurnace` (Base, Body, FireMouth with Flames, Chimney1/2 with Steam, FeedZone)
+    - `Pipes.Route1/2` (Waypoints attribute)
+    - `CollectPads.Pad1/2` (tag `CollectPad`)
+    - `CoalBlocks.<room>` (1,006 blocks, tag `CoalBlock`, Units / MaxUnits / Room
+      attributes, 1,000,000 units in total)
+    - `ArrivalPad` (LiftTarget = Lobby)
+  - `Lighting`: sunny (ClockTime 14, Atmosphere, ColorCorrection, Bloom).
+    `Workspace.StreamingEnabled = false` (the game is ~1,500 parts and streaming broke the
+    HUD/minimap).
+- **Shared:**
+  - `ReplicatedStorage.RemoteEvents`: MineNodeEvent, BuyUpgradeEvent, UpdateHUDEvent,
+    RunEvent, FurnaceEvent
+  - `ReplicatedStorage.Modules.Config`: v2 tuning
+  - `ReplicatedStorage.Assets.Animations.PickaxeRest` and `PickaxeSwing` (copied from the
+    archive)
+  - `ReplicatedStorage.Effects.MineImpactSound`
+- **Server:**
+  - `ServerStorage.Templates.Pickaxe_Wood` (stud-part placeholder tool)
+  - `ServerScriptService.Data.PlayerData` (module) and `Data.PlayerServer`
+  - `World.LiftServer`
+  - `Mining.MiningServer` (blocks, hidden diamond, room stats, run end + regenerate)
+  - `Economy.FurnaceServer`
+- **Client:** `StarterPlayer.StarterPlayerScripts.MiningClient`, `CoalFeedbackClient`,
+  `CartClient`, `FurnaceClient`, `HUDClient`
+
+Shared interfaces:
+- `MineNodeEvent:FireServer(block: BasePart)`. The server checks the tag, range (9),
+  facing, 0.45 s cooldown, Pickaxe_ tool and cart room.
+- `UpdateHUDEvent` (server → client): `{Cart, CartCapacity, Money, PipeMoney, Shards, Power}`.
+  The server also mirrors `Cart` / `CartCapacity` onto Player attributes for everyone's cart
+  visuals.
+- `FurnaceEvent`: `("Dump", player, amount)` to all clients; `("Collected", amount, pad)` to
+  the collecting player.
+- `RunEvent`: `("DiamondFound", {Finder, Position, ShardsEarned, RegenerateIn})` and
+  `("RunStarted")`.
+- The diamond's block is held only in MiningServer locals, never in an attribute, so
+  clients can't find it early.
+
+Docs and agents added:
+- `GAME_SPEC.md` (v2), with v1 moved to `docs/archive/`
+- `docs/STYLE_BIBLE.md`, `docs/UI_RULES.md`
+- `docs/ui/RESEARCH.md` (30 sourced findings from the ui-researcher agent; its proposed rule
+  changes are NOT merged into UI_RULES yet)
+- `.claude/agents/ui-researcher.md`, `ui-critic.md`, `asset-artist.md`
+- `art/gen_refs.py`, `art/LEDGER.md`, `art/refs/` (style test)
+
+Heads up / next:
+- **Art:** Gemini's prepaid credit is empty (HTTP 402). The style test ran on OpenAI
+  instead (about $0.02). Cart and furnace references are approved-quality and ready for
+  Meshy; the pickaxe needs a re-prompt. Meshy is untouched. Wait for Rufus to approve the
+  style before spending.
+- **Still placeholders:** pickaxe, cart, furnace, pads. No hard hat yet.
+- **Not built yet:** Upgrade Book, Shop, robots, drones, lobby permanent equipment, rare
+  finds, DataStore saving (all state is in memory).
+- **UI:** the HUD is a first pass and hasn't had a ui-critic review. Merge the research rule
+  changes first.
+- **Run length:** at 25 coal per hit, one player would take forever. Upgrades and helpers
+  are what make an hour realistic; tune once they exist.
+- **Polish:** "Mine searched" shows 0.0% for a long time; show two decimals under 1%.
+
 ### [2026-09-28] — Person A (Rufus's Claude) — Mining vertical slice
 Built the whole first playable loop in one pass, across both lanes (mining/economy AND
 UI/effects/animation), so both of you have something working to build on. Verified in Play:
@@ -164,3 +256,11 @@ Heads up:
   same time" — otherwise you'd be editing two local copies that can't merge.
 - This whole folder needs to exist on BOTH machines for CLAUDE.md to auto-load for
   both of you — see the note below on sharing it.
+
+### [2026-10-06] Codex - visual polish in progress
+User authorized visual improvements to Find The Diamond In the Coal (105849041537760). Do not touch Idle Medieval. Working on HUDClient, GoalHUDClient and existing town decoration colours. Egg/pet decision pending user. No shared interfaces or economy changes planned. Recoverable backup will be stored in ServerStorage.VisualBackup_20261006.
+
+Visual pass completed: recoloured existing GeneralStore/SupplyStore/SellStand/ValleyDecor/TownSquare; removed 51 balloon/cash decoration parts; originals in ServerStorage.VisualBackup_20261006. Updated HUDClient (screen bag bar and modal visibility), GoalHUDClient (readable progress/narrow layout), ShopClient (palette/font/centred cards/narrow cash layout), MenuClient, StoryClient, TipsClient (palette/fonts). Six original script copies also in that backup. No shared data interfaces/economy edits. Egg yard and pet systems unchanged pending user decision. Playtested shop opening, pickaxe page, settings, HUD hiding/restoration. No script errors observed; DataStore API disabled in Studio. Mobile layout code added but device-emulator testing remains. Studio returned to Edit mode. Did not publish or touch Idle Medieval.
+
+### [2026-10-06] House lobby rebuild - Codex
+User explicitly requested house/road/mailbox environment, no eggs, party creation, intro cutscene, mining journal UI and cave revamp. This supersedes older no-environment-generation constraint for this task. Adding RemoteEvents.ExpeditionEvent and ExpeditionState attributes, LobbyServer and JournalClient; replacing old HUD/shop/menu/story presentation. Existing progression retained pending user answer. Back up touched scripts and world before edits. Do not edit Idle Medieval.

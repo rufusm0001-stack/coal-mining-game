@@ -1,71 +1,78 @@
-# Original Design Brief (verbatim)
+# Find The Diamond In The Coal — Game Design v2
 
-This is the original prompt used to brief an AI on this project's game design.
-The distilled, always-loaded version of these rules lives in CLAUDE.md — this file
-is kept as the source-of-truth reference in case the two ever drift or you want the
-full original framing.
+Decided with Rufus on 2026-10-06. Replaces the v1 brief (kept in `docs/archive/GAME_SPEC_v1.md`).
+ChatGPT/Codex's build (expeditions, parties, pets, eggs, robots v1, story, journal, dark town)
+is archived in `ServerStorage.Archive_ChatGPT_20261006` and is NOT part of this design.
 
----
+## The pitch
 
-You are acting as an expert Roblox Luau game developer and systems architect working
-on a viral, hyper-casual search-and-mine game for our studio "Ctrl+C Games".
+One diamond is hidden somewhere among about a million pieces of coal. Everyone on the server
+digs through the mine together to find it. A run takes about an hour. Along the way you find
+rarer stuff (gold coal, platinum, rainbow coal) that pays out more.
 
-## GAME VISION & THEME
+Not a competition: the whole server is a team.
 
-- Title / Theme: Mineshaft Search Game (inspired by the viral completionist loops of
-  "Find the Needle" and "Where Did I Park?").
-- Aesthetic Environment: Underground mineshaft with wooden support pillars, overhead
-  minecart rails, lava pits, and dark rock caverns.
-- HARD CONSTRAINT: DO NOT write code to build or generate the physical map or visual
-  environment (walls, lava, pillars). The human developers will build the map
-  manually in Roblox Studio. Focus EXCLUSIVELY on backend scripts, system math, data
-  saving, client UI, tool logic, RemoteEvents, and automation systems.
+## Look
 
-## CORE MECHANICS & NUMBERS
+Colourful stud-voxel world, like Prehistoric Farm: chunky cubes, stud tile texture, saturated
+colours, low poly. Sunny surface town as the lobby; underground is colourful and glowing
+(orange lava, purple/teal crystals, warm lanterns), never pitch black. Coal stays dark so it
+pops against that. Full rules: `docs/STYLE_BIBLE.md`.
 
-1. World Pool: The mine contains ~2,000 active physical resource nodes that scale to
-   represent a total collectible pool of ~1,000,000 Coal.
-2. Node Types & Rarities:
-   - Standard Coal Nodes (large, common, base yield).
-   - Gold Coal Nodes (smaller mesh size, higher cash/coal yield).
-   - Rainbow Coal Nodes (ultra-rare, high payout, special particle effects).
-3. Tool Progression & Pickaxes:
-   - 10 Pickaxe Tiers (Stone Pickaxe -> Iron -> Gold -> Diamond -> Plasma/Laser
-     Pickaxes). 3D models are generated via Meshy AI.
-   - Equipment Stats:
-     - Yield Multiplier (e.g., +1 Coal vs +50 Coal per swing).
-     - Swing Speed Multiplier (reduces swing cooldown/animation speed).
-     - Walk Speed Multiplier (player movement across the mineshaft).
+Players keep their own Roblox avatar, plus a stud-style miner hard hat with a lamp.
 
-## VISUAL EFFECTS, ANIMATIONS & DYNAMIC UI
+## Core loop
 
-1. Tool Swing Mechanics: When a player clicks a node, trigger a client-side swing
-   animation, play a pickaxe impact SFX, and spawn hit particles at the Raycast hit
-   position.
-2. World-Space Floating Text (Pop-Up UI): Upon striking a node, spawn a brief
-   floating UI text at the hit position displaying "+[Amount] [Coal Icon]" (e.g.,
-   "+2 [Coal]"). The text drifts upward and fades out over 0.8 seconds.
-3. Persistent HUD UI:
-   - Mined Progress Counter: A clean UI bar/text showing total coal collected out of
-     the target (e.g., "452,100 / 1,000,000 Coal Collected").
-   - Cash Balance & Inventory Capacity UI.
-4. Sell Area & Shop UI:
-   - Sell Zone: A designated physical prompt/hopper in the hub that converts
-     collected coal into Cash.
-   - Upgrade Menu: Clean, modern card-style UI (inspired by "Find the Needle" and
-     "Where Did I Park?") for purchasing Pickaxe tiers, Swing Speed, Walk Speed, and
-     Automation Helpers.
+1. **Mine.** Left click swings the pickaxe (hold to keep swinging). Each hit knocks coal off a
+   coal block into your cart.
+2. **Cart.** A little cart follows you like a pet (no collisions, so it never snags), and you
+   can see coal piling up in it. When it's full you can't mine more.
+3. **Furnace.** The Great Furnace sits in the middle of the mine. Walk up to it and your cart
+   tips its coal in: flames flare, steam blasts out of the chimneys.
+4. **Pipes → money.** Burning coal makes money. Gas puffs travel along pipes out of the back of
+   the furnace to collect pads. Stand on a pad to collect your money. Pipes are shared; the
+   money you collect is what your own coal earned.
+5. **Upgrade.** Spend money in the Upgrade Book (UI) and the Shop (NPC). See below.
+6. **Search.** The minimap shows every room and how much of it has been cleared, so the team
+   knows where is still unsearched.
+7. **Find the diamond.** It's hidden inside one random coal unit. Whoever's hit releases it
+   triggers a server-wide celebration and the run ends: everyone gets rewards based on what
+   they contributed, then returns to the lobby and the mine regenerates.
 
-## AUTOMATION HOOKS (LATE-GAME RETENTION)
+## Progression inside a run (resets each run)
 
-Players can unlock automated helpers that mine nodes passively without manual clicking:
-1. Robotic Excavators: Mounted stationary drills attached to mine walls.
-2. Mining Drones: Hovering pets that target nearby nodes automatically.
-3. Minecarts / Conveyors: Automatic transportation lines for mined coal.
+- **Pickaxes:** the best way to mine, all the way to the top tiers late in the run. Each
+  pickaxe has three upgrade tracks: Power (coal per hit), Speed (swing rate), Reach.
+- **Cart:** Capacity and Pull Speed. Visible tiers: wheelbarrow → wooden minecart → iron ore
+  wagon → crystal hauler.
+- **Robots:** ground helpers that walk to coal and mine automatically. Good because they're
+  automatic, weaker than pickaxes.
+- **Drones:** fly to coal, mine until full (capacity bar over their head), fly back to the
+  furnace, dump, repeat.
+- Pickaxes and robots/drones are bought at the Shop; their upgrade tracks live in the
+  Upgrade Book.
 
-## ARCHITECTURE & REMOTEEVENTS (ReplicatedStorage)
+## Between runs (permanent, no rebirth)
 
-All scripts must communicate cleanly using modular Luau standards:
-- RemoteEvents: `MineNodeEvent`, `SellCoalEvent`, `BuyUpgradeEvent`, `UpdateHUDEvent`
-- ModuleScripts: `PickaxeData` (names, costs, multipliers), `UpgradeData` (prices,
-  caps), `AutomationData`.
+The sunny surface town is the lobby. Run rewards buy permanent equipment that gives boosts in
+every future run (e.g. bigger starting cart, faster swing, brighter hat lamp, lucky finds).
+Nothing you buy here is ever reset.
+
+## UI references
+
+- Upgrade Book: Rufus's reference screenshot (hay game). Open-book layout, one page per tool,
+  three upgrade tracks each with icon + price + level pips, locked tools shown as "???" slots
+  with padlocks, "your money" footer. We restyle it in stud-toy style.
+- Prehistoric Farm: left rail of round icon buttons with labels, bottom hotbar, quest tracker.
+- Rules: `docs/UI_RULES.md`. Research notes: `docs/ui/RESEARCH.md`.
+
+## Later, not now
+
+Harder cave layers, mobs, swords/crafting (a bit like 99 Nights in the Forest), more cart/drone
+variety. Don't build these until Rufus asks.
+
+## Numbers (starting point, tune in playtests)
+
+- Coal pool per run: ~1,000,000 units across all rooms. Diamond = one random unit.
+- Target run length: ~60 minutes for ~4 players.
+- Rare finds: gold coal, platinum, rainbow coal; exact rates TBD.
