@@ -47,7 +47,58 @@ Heads up:
 
 ## Log
 
+### [2026-10-06, later] — Rufus's Claude — Old world restored and turned into stud blocks
+Rufus rejected the grey-box rebuild below: "my old game looked 10x better, it just needed
+legoing". So the old world is back as the base, and the grey box (Workspace.Lobby /
+Workspace.Mine) is deleted. Old mechanics (journal pages, story, expeditions) stay archived.
+
+What changed in Studio:
+- **Restored** from the archive into Workspace: ValleyDecor, Scenery, CoalNodes, CaveDecor,
+  SupplyStore, GeneralStore, MineCartLine, SellStand, TownSquare, Baseplate, AdaCamp,
+  DiamondLeaderboard, SpawnLocation, HouseLobby, CaveWayfinding. Terrain was pasted back,
+  then converted (see below).
+- **Backup:** a copy of the restored world before any restyling is at
+  `ServerStorage.Backup_OldWorld_PreStud`. The original terrain is still in
+  `Archive_ChatGPT_20261006.TerrainRegion`.
+- **Parts:** 3,465 parts switched to Plastic with Studs surfaces (Inlet on the bottom) and
+  their colours pushed brighter and more saturated. Neon, Glass, ForceField and invisible
+  parts were left alone.
+- **Terrain → studs:** `ServerStorage.DevTools.TerrainToStuds` rebuilt all solid terrain as
+  surface-only stud blocks, greedily merged per layer, in `Workspace.StudTerrain`
+  (~26,500 parts). Solid terrain was then cleared; 156 cells remain.
+  - Cave interior blocks (anything with stud rock overhead) are recoloured purple and carry
+    a `CaveInterior` attribute.
+  - Paved ground east of the plaza was turned into grass (`WasPaved` attribute).
+- **Scenery:** `ServerStorage.DevTools.VoxelProps` replaced the 433 realistic scenery meshes
+  (165 flower patches, 123 rocks, 104 bushes, 21 pines, 20 oaks) with studded cube builds in
+  `Workspace.VoxelScenery`.
+- **Lighting:** the 72 cave lights are dimmed to 40% (originals kept in an
+  `OriginalBrightness` attribute). Colour saturation boost lowered to 0.1.
+- **Paused** (Enabled = false) until they're moved into the old cave: LiftServer,
+  MiningServer, FurnaceServer, FurnaceClient, HUDClient, CoalFeedbackClient. PlayerServer,
+  MiningClient and CartClient still run (pickaxe pose and swing, following cart).
+
+Art:
+- Meshy spend: 270 credits for 9 models (balance 3,570).
+- The furnace, minecart and pickaxe models are good, in `art/models/`.
+- The scenery models melted at low poly, so they're not used (part-built props instead).
+- The coal node lost its gold studs and probably needs a redo at a higher poly count.
+
+**Blocked:** the Roblox Open Cloud key in api.txt returns 403 "User not authenticated" for
+asset uploads. Rufus needs to add Assets read + write to the key (and allow IP
+0.0.0.0/0), or import the FBX files by hand with File → Import 3D.
+
+Next:
+- Put the furnace, cart and pickaxe models in.
+- Re-home mining onto the old cave's 104 CoalNodes, using the new coal model.
+- Re-enable the paused scripts: furnace in the cave, collect pads, HUD and minimap over the
+  old cave zones.
+- Slim down StudTerrain (vertical merging) for phones.
+- Remove ChatGPT's old "1000 / 1000" billboards from the coal nodes.
+
 ### [2026-10-06] — Rufus's Claude — v2 rebuild, part 1: stud world + full core loop
+**Superseded by the entry above.** The grey-box world described here was deleted; the
+scripts were kept and are partly paused.
 Rufus decided the v2 design (see GAME_SPEC.md) and handed the whole rebuild to this session.
 His brother's Claude should read this entry and GAME_SPEC.md, and play/review rather than edit
 until TASKS.md says the lanes are back.

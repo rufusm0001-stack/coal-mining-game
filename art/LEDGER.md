@@ -17,4 +17,4 @@ run on OpenAI until it's topped up.
 | 2026-10-06 | Gemini | 4 style-test images, all failed with HTTP 402 | $0 |
 | 2026-10-06 | OpenAI gpt-image-1-mini low | style test: 3 images (NPC blocked by moderation) | ~$0.02 |
 | 2026-10-06 | OpenAI gpt-image-2 medium | 9 reference images for Meshy | ~$0.40 (estimate) |
-| 2026-10-06 | Meshy image-to-3D | pickaxe_starter, coal_node, minecart, great_furnace | 270 credits |
+| 2026-10-06 | Meshy image-to-3D | 9 models: pickaxe_starter, coal_node, minecart, great_furnace, tree_oak, tree_pine, bush, rock_mossy, flower_patch (3,840 -> 3,570) | 270 credits |
