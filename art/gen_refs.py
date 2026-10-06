@@ -42,7 +42,58 @@ JOBS = {
     "rock_mossy": "A small chunky grey boulder with patches of bright green moss on top",
     "flower_patch": "A small low patch of flowers: short green stems and leaves with bright pink, yellow "
     "and white blossoms",
+    "furnace_v2": "A big industrial coal furnace for a mine, serious and sturdy, no face, no eyes, no mouth: "
+    "a chunky square dark-red brick body on a dark grey stone base, a large arched iron fire door at the front "
+    "with a grate and a warm orange glow behind it, one big tall round steam pipe rising up from the left side "
+    "with a cap on top, and one horizontal pipe coming out of the back made of clear transparent glass with "
+    "grey smoke visible inside it, iron bands and rivets",
+    "town_fountain": "A town square fountain for a mining village: a round two-tier grey stone brick basin "
+    "with bright blue water, and in the middle a small statue of a cheerful miner holding a pickaxe up high, "
+    "wearing a yellow hard hat, with water streams falling into the basin",
+    "pickaxe_shop": "A small cosy pickaxe shop building for a mining village: walls of warm tan and brown "
+    "bricks, a pitched red roof with a chimney, a big open shop window counter at the front with an awning "
+    "in red and white stripes, a large wooden sign shape above the counter with a crossed pickaxe emblem (no "
+    "letters), pickaxes displayed on a rack by the door, two lanterns",
+    "robot_workshop": "A small robot workshop building for a mining village: walls of light grey and "
+    "teal bricks, a flat roof with a satellite dish and a big cog decoration, a wide garage door at the front "
+    "half open with a friendly little mining robot peeking out, yellow and black hazard stripes on the door "
+    "frame, a workbench with tools beside it",
+    "collect_pad": "A miner-themed money collection pad to stand on: a low square platform of grey stone bricks "
+    "with dark wood trim, a big round shiny yellow pressure button in the middle with a gold coin symbol on top, "
+    "a small crossed pickaxe decoration on the front edge and a little lantern on one corner",
 }
+
+
+ICON_STYLE = (
+    "Style: a single game UI icon for a colourful building-brick toy mining game, chunky simple shape "
+    "made of plastic bricks with little studs, bright saturated colours, a thick dark navy outline around "
+    "the whole silhouette, soft top-left light, centred with a small margin, fully transparent background. "
+    "No text, no letters, no frame, no circle behind it, no shadow on the ground."
+)
+
+ICONS = {
+    "icon_pickaxe_stone": "A stone pickaxe with an orange-brown handle and a curved grey crescent head, "
+    "tilted diagonally at 45 degrees",
+    "icon_coal": "A chunky lump of dark charcoal-blue coal made of bricks with two small gold blocks in it",
+    "icon_coin": "A single shiny gold coin seen slightly from the front, with a raised pickaxe emblem in its centre",
+    "icon_cart": "A small wooden mine cart heaped with dark coal, seen from the side, chunky black wheels",
+}
+
+
+def generate_icon(key: str, name: str, subject: str) -> Path:
+    r = requests.post(
+        "https://api.openai.com/v1/images/generations",
+        headers={"Authorization": f"Bearer {key}"},
+        json={"model": "gpt-image-1", "prompt": f"{subject}. {ICON_STYLE}", "size": "1024x1024",
+              "quality": "medium", "background": "transparent", "output_format": "png"},
+        timeout=300,
+    )
+    if r.status_code != 200:
+        raise RuntimeError(f"{name}: HTTP {r.status_code} {r.text[:300]}")
+    path = OUT.parent / "icons" / f"{name}.png"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(base64.b64decode(r.json()["data"][0]["b64_json"]))
+    return path
 
 
 def read_key(provider: str) -> str:
@@ -88,6 +139,15 @@ def main() -> None:
     if "--quality" in args:
         quality = args[args.index("--quality") + 1]
     use_gemini = "--gemini" in args
+    if "--icons" in args:
+        key = read_key("open ai")
+        names = [a for a in args if not a.startswith("--")] or list(ICONS)
+        for name in names:
+            try:
+                print("saved", generate_icon(key, name, ICONS[name]), flush=True)
+            except Exception as exc:
+                print("FAILED", exc, flush=True)
+        return
     names = [a for a in args if not a.startswith("--") and a not in ("low", "medium", "high")] or list(JOBS)
     key = read_key("gemini") if use_gemini else read_key("open ai")
     gen = generate_gemini if use_gemini else generate_openai

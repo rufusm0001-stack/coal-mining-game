@@ -18,9 +18,12 @@ CONTENT_TYPES = {".glb": "model/gltf-binary", ".fbx": "model/fbx"}
 
 
 def roblox_key() -> str:
-    for line in KEY_FILE.read_text(encoding="utf-8").splitlines():
-        if line.lower().startswith("rolbox") or line.lower().startswith("roblox"):
-            return line.split("-", 1)[1].strip()
+    # Prefer the key made for this game; fall back to the older general one.
+    lines = KEY_FILE.read_text(encoding="utf-8").splitlines()
+    for prefix in ("roblox cooal mining game", "roblox coal mining game", "rolbox", "roblox"):
+        for line in lines:
+            if line.lower().startswith(prefix):
+                return line.split("-", 1)[1].strip()
     sys.exit("no roblox key found")
 
 

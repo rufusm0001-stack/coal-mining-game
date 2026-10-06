@@ -47,6 +47,90 @@ Heads up:
 
 ## Log
 
+### [2026-10-06, night] — Rufus's Claude — Brick props, new furnace, mining back in the cave, hotbar + HUD
+Rufus's feedback:
+- The trees, rocks, shop and fountain looked weird.
+- The furnace had a face; he wants a generic one with one big steam pipe at the side and a
+  glass pipe out the back where smoke shows, connected to a miner-themed collect button.
+- The cart and pickaxe looked bad.
+- Things floated (roads).
+- There was no UI, and the pickaxe showed the raw name "Pickaxe_Wood".
+
+All addressed. Verified in Play with no console errors: mine a coal rock in the cave
+(+50 per hit), cart fills, dump at the furnace, glass pipe smokes, collect $200 at the pad.
+
+**How models are made now** (no Roblox upload key needed):
+- Reference image (OpenAI gpt-image-2, `art/gen_refs.py`).
+- Studio's `generate_procedural_model` builds it from real parts.
+- Restyle to Plastic with top-only studs.
+- Repeated props are merged with `GeometryService:UnionAsync` into one multi-colour
+  UnionOperation and cloned (`ServerStorage.PropLibrary`). The original generated models
+  are parked in `ServerStorage.GeneratedSources`.
+- ProceduralModels must be converted to plain Models: they rebuild themselves in Play and
+  undo any restyle (done for every placed one).
+- Don't enter Play while a generation job is running. Jobs that finish during Play land in
+  the Play session and are lost.
+
+Studs: buildings and props now have studs on top faces only (sides smooth). Terrain keeps
+studs on its sides.
+
+Touched:
+- **Scenery:** `Workspace.VoxelScenery` holds clones of OakUnion, PineUnion, RockUnion and
+  BushUnion (268 props) plus the small flower clusters.
+- **Town:**
+  - `Workspace.BlockyTownFountain` replaces the old fountain.
+  - `Workspace.PickaxeShop` replaces GeneralStore.
+  - `Workspace.Workshop` (robot workshop) replaces SupplyStore.
+  - Plaza re-laid as `PlazaTile` checker with a ring.
+  - Old pieces are in `ServerStorage.Removed_OldTown`.
+- **Settled:** 179 objects dropped onto the stud ground (roads no longer float).
+- **Cave:**
+  - Interior recoloured to warm brown stone.
+  - Cave lights at 70% of their originals.
+  - `Workspace.CoalNodes`: all 104 nodes rebuilt with a `Rock` (CoalUnion clone) plus the
+    old `Hitbox` as PrimaryPart, tagged `CoalNode`, attributes Zone / MaxUnits / Units
+    (9,615 each, 1,000,000 total). ChatGPT labels and attributes removed.
+- **`Workspace.MineSystems`** (Furnace Hall, in the old Robot Room — the only tall open room):
+  - `GreatFurnace`: FeedZone in front of the door, FireGlow with FurnaceLight,
+    GlassPipeMain with PipeSmoke, ChimCapTop with Steam.
+  - `CollectPad`: CollectZone tagged `CollectPad`, LinkPipe joining it to the glass pipe,
+    PuffPath attribute.
+- **Pickaxe:** `ServerStorage.Templates.Pickaxe_Stone` (PickaxeUnion handle, DisplayName
+  "Stone Pickaxe", Tier 1, TextureId set). Pickaxe_Wood removed; PlayerServer gives
+  Pickaxe_Stone.
+- **Cart:** `ReplicatedStorage.Assets.CartTemplate` (Body, 4 spinning wheels, 4 coal layers,
+  Offset attributes). CartClient rewritten to use it.
+- **Icons:** uploaded through Studio's upload_image from localhost (no API key). Ids are in
+  `ReplicatedStorage.Modules.Icons`; sources in `art/icons/ui`.
+- **Scripts:**
+  - Rewritten for the old cave: MiningServer, FurnaceServer, MiningClient,
+    CoalFeedbackClient, FurnaceClient, HUDClient.
+  - New: HotbarClient (custom hotbar; the default backpack bar is disabled).
+  - LiftServer deleted (you walk into the cave now).
+- **Config:** StartPower 50, MineRange 6 (measured to the rock's edge).
+
+Shared interfaces (changed):
+- `MineNodeEvent:FireServer(node: Model)`. The node must be tagged CoalNode and inside
+  Workspace.CoalNodes.
+- `ReplicatedStorage.MineProgress` (Configuration) attributes:
+  - Total, Mined, DiamondFound
+  - ZoneName_<key>, Z_<key>_Total, Z_<key>_Mined
+- `CollectPad` tag is on the CollectZone part.
+- `GreatFurnace` has a Burning attribute.
+
+Known gaps / next:
+- The Upgrade Book and shop UI aren't built. PickaxeShop and Workshop are only scenery so
+  far.
+- Robots and drones aren't built yet.
+- Lobby permanent equipment isn't built yet.
+- No saving to DataStore yet.
+- Pacing: about 192 hits to clear one rock at 50 power. Tune once upgrades exist.
+- StudTerrain is still ~26,500 parts. It needs vertical merging for phones.
+- The cave's 4 old Minecart decor models and MineCartLine's 2 CartMesh carts are still
+  realistic meshes.
+- The diamond-found flow hasn't been tested in Play (it needs a debug trigger).
+- The HUD hasn't had a ui-critic pass yet.
+
 ### [2026-10-06, later] — Rufus's Claude — Old world restored and turned into stud blocks
 Rufus rejected the grey-box rebuild below: "my old game looked 10x better, it just needed
 legoing". So the old world is back as the base, and the grey box (Workspace.Lobby /
