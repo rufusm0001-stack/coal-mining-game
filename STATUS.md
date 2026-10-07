@@ -399,3 +399,18 @@ Visual pass completed: recoloured existing GeneralStore/SupplyStore/SellStand/Va
 
 ### [2026-10-06] House lobby rebuild - Codex
 User explicitly requested house/road/mailbox environment, no eggs, party creation, intro cutscene, mining journal UI and cave revamp. This supersedes older no-environment-generation constraint for this task. Adding RemoteEvents.ExpeditionEvent and ExpeditionState attributes, LobbyServer and JournalClient; replacing old HUD/shop/menu/story presentation. Existing progression retained pending user answer. Back up touched scripts and world before edits. Do not edit Idle Medieval.
+
+## 2026-10-07 — Codex upgrade book in progress
+User requested continued improvements to current v2. Editing PlayerData, MiningServer, MiningClient, FurnaceServer; adding Modules.UpgradeData, Economy.UpgradeServer, StarterPlayerScripts.UpgradeBookClient and RemoteEvents.UpgradeEvent. Existing cart/furnace gameplay retained. Backups before edits.
+
+## 2026-10-07 — Upgrade book implemented (Codex)
+- Added ReplicatedStorage.Modules.UpgradeData; RemoteEvents.UpgradeEvent; ServerScriptService.Economy.UpgradeServer; StarterPlayer.StarterPlayerScripts.UpgradeBookClient.
+- Updated ServerScriptService.Data.PlayerData, ServerScriptService.Mining.MiningServer and StarterPlayer.StarterPlayerScripts.MiningClient. FurnaceServer unchanged: existing profile-identity check already invalidates old delayed credits.
+- Shared HUD payload adds UpgradeLevels, SwingSpeed, Reach. Money mirrored as Player attribute. UpgradeEvent client sends track key + expected level (or Sync); server returns key, success, reason. Prices and effects calculated server-side; expected level prevents duplicate charges.
+- Five levels each for Power (50->330), Speed (1->1.8x), Reach (6->12 studs), Capacity (250->4000). Initial prices 200/300/150/200 coins. These are initial tuning values, not a validated hour-long economy.
+- New mine replaces run profile, clears run money/cart/upgrades/contribution, retains shards. Old in-flight furnace earnings cannot cross runs.
+- ToyUI upgrade book: desktop illustration, responsive phone layout, level pips, before/after stats, coin purchase effect, insufficient-funds shake, B shortcut, prevents new mining swings while open.
+- QA passed: all four purchase tracks, five-level caps, stale duplicate request, invalid type/key/NaN, insufficient funds, reset and shard retention. Live remote purchases spent exactly 850 from a 2000 test balance; actual mining awarded 75 into a 500 cart at upgraded reach. Test fixtures/wallet only existed in Play and were discarded on stop.
+- Visual review: 1920x1080 over mine and 375px portrait; footer crowding fixed. Reviewed against ui-critic checklist directly; separate critic agent not run. Landscape scrolling implemented but not device-tested. No runtime console errors in final Play test.
+- Backup: ServerStorage.Backup_UpgradeBook_20261007. Versioned source copies in studio/*.lua. Studio left in Edit. No live publish performed.
+- Existing gaps: no DataStore persistence; published animation IDs still missing. Upgrade purchase sound and dedicated per-track icon artwork still to add. This does not implement robots, permanent gear, lobby matchmaking, or cutscene changes.
