@@ -47,6 +47,39 @@ Heads up:
 
 ## Log
 
+### [2026-10-08, later] — Rufus's Claude — Meshy models swapped into the game
+Rufus imported the 12 Meshy v2 models. They landed in the universe inventory under the group
+"CTRL + V GAMES", each one uploaded twice, and weren't placed in the game.
+
+I inserted one copy of each into `ServerStorage.MeshyImports`. Each is a single textured
+MeshPart, and they came in at random scales (around 190 studs, two at about 1 stud).
+
+Swapped in:
+- **Buildings and pads.** A scaled `MeshyVisual` MeshPart was added inside each of
+  `MineSystems.GreatFurnace`, `MineSystems.CollectPad`, `BlockyTownFountain`, `PickaxeShop`
+  and `Workshop`.
+  - The old brick parts are hidden (Transparency 1, CanCollide off), with copies in
+    `ServerStorage.Backup_BrickProps_20261008`.
+  - The functional parts are kept: FeedZone, FireGlow, GlassPipeMain, ChimCapTop,
+    CollectZone and LinkPipe.
+- **Coal.** All 104 `CoalNodes.*.Rock` are now the Meshy coal mesh. The name is still `Rock`,
+  so the shake and flash feedback work. The old unions are in the backup.
+- **Scenery.** In `VoxelScenery`, 9 oaks, 13 pines, 73 bushes and 79 rocks are Meshy meshes
+  now. The original unions are in the backup; flowers are unchanged.
+- **Pickaxe.** `Templates.Pickaxe_Stone.Handle` is the Meshy pickaxe, 4.6 studs tall, with Grip
+  y −1.5.
+- **Cart.** Kept the brick CartTemplate, because the Meshy cart has its coal baked in and
+  couldn't show the fill layers.
+
+Verified in Play with no console errors: the town screenshot, the pickaxe resting pose, and
+mining a Meshy coal rock (150 coal into the cart, remaining label counting down).
+
+Still open:
+- Furnace hall framing hasn't been reviewed; the furnace mesh is about 28 studs wide.
+- The two old ChatGPT CartMesh carts on MineCartLine are still realistic meshes.
+- No YouTube connector exists yet. vidIQ was suggested to Rufus; it does YouTube research
+  and may not provide transcripts.
+
 ### [2026-10-08] — Rufus's Claude — Tutorial-based UI kit, map QA, zone colours, diamond celebration
 Built on top of Codex's 2026-10-07 upgrade book (entry at the bottom of this file); none of its
 logic was changed.
