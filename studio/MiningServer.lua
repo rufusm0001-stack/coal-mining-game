@@ -118,6 +118,7 @@ local function onDiamondFound(player, node)
 	diamondFound = true
 	progress:SetAttribute("DiamondFound", true)
 	local where = (node.PrimaryPart or node:FindFirstChildWhichIsA("BasePart")).Position
+	local finderRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 	for other, profile in pairs(PlayerData.All()) do
 		local shards = math.floor(profile.RunContribution / Config.UnitsPerShard)
 		if other == player then
@@ -128,6 +129,7 @@ local function onDiamondFound(player, node)
 		Remotes.RunEvent:FireClient(other, "DiamondFound", {
 			Finder = player.DisplayName,
 			Position = where,
+			FinderPosition = finderRoot and finderRoot.Position or nil,
 			ShardsEarned = shards,
 			RegenerateIn = Config.RegenerateDelay,
 		})
@@ -210,5 +212,33 @@ Remotes.MineNodeEvent.OnServerEvent:Connect(onMine)
 Players.PlayerRemoving:Connect(function(player)
 	lastHit[player] = nil
 end)
+
+-- Studio-only test hook: ServerStorage.DevTools.ForceDiamond:Invoke(player) finds the diamond in
+-- the coal rock nearest that player, so the celebration can be tested without mining a million units.
+if game:GetService("RunService"):IsStudio() then
+	local devTools = SS:FindFirstChild("DevTools")
+	if devTools then
+		local hook = devTools:FindFirstChild("ForceDiamond") or Instance.new("BindableFunction")
+		hook.Name = "ForceDiamond"
+		hook.Parent = devTools
+		hook.OnInvoke = function(player)
+			local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+			if diamondFound or not root then
+				return false
+			end
+			local best, bestDistance
+			for _, node in ipairs(liveNodes()) do
+				local d = (node:GetPivot().Position - root.Position).Magnitude
+				if not bestDistance or d < bestDistance then
+					best, bestDistance = node, d
+				end
+			end
+			if best then
+				onDiamondFound(player, best)
+			end
+			return best ~= nil
+		end
+	end
+end
 
 startRun()

@@ -47,6 +47,68 @@ Heads up:
 
 ## Log
 
+### [2026-10-08] — Rufus's Claude — Tutorial-based UI kit, map QA, zone colours, diamond celebration
+Built on top of Codex's 2026-10-07 upgrade book (entry at the bottom of this file); none of its
+logic was changed.
+
+Verified in Play with no console errors:
+- the new HUD and hotbar
+- the cart walking beside the player
+- the forced diamond find: burst, rising diamond, camera swing, beam visible from the town
+  plaza, banner, +50 shards
+
+Done:
+- **UI kit** (from 17 YouTube UI tutorials, see `research_notes/yt/UI_TUTORIAL_FINDINGS.md`
+  and the rewritten `docs/UI_RULES.md`):
+  - `ReplicatedStorage.Modules.ToyUI` provides block, button, label, bar, icon and root.
+  - Every element is built the same way: a darker outlined slab, a raised face with a gradient
+    and an inner rim, a stud tile, and text with a stroke plus a hard shadow.
+  - The root scale is 1280x720 based, ×1.7 on phones, capped at 1.
+  - HUDClient and HotbarClient were rebuilt on the kit at the tutorial size budget.
+  - Stud tile image: `Icons.StudTile`.
+- **Cart:** it now follows beside the player (offset 4, 0, 1.5), smaller, and its parts have
+  CanQuery off. It was blocking the camera when it followed directly behind.
+- **Map QA:** `studio/map_qa.luau` (run it with execute_luau after fetching it from
+  localhost). Ran it and fixed:
+  - 113 floating props lowered onto the ground
+  - 37 bushes and rocks left floating 80–140 studs up (on mountains that no longer exist)
+    removed
+  - 64 props hanging over cliff edges removed
+  - 78 props on stud steps given a ground-coloured ledge block (`Skirt`)
+  - Removed props are in `ServerStorage.Removed_OldTown.CliffEdgeScenery`.
+- **Not fixed (intentionally):** the 26 "tipped" props are angled wall crystals and hanging
+  chandeliers.
+- **Colour:** each cave zone's interior blocks have their own palette, recorded in a
+  `CaveZone` attribute:
+  - Ember Hills red, Deep Pit purple, Junction teal, Coal Quarry ochre, Deep Tunnel blue.
+  - Tunnels are wood-brown, and the furnace hall is warm.
+  - Surface lighting: ClockTime 10, haze tinted to the sky, saturation 0.12.
+- **Diamond moment:** new `StarterPlayer.StarterPlayerScripts.DiamondClient`:
+  - debris burst, then the diamond rises toward the finder and spins with sparkles
+  - a 12-wide neon beam shoots up out of the mountain
+  - a 4 s camera orbit that won't clip through walls
+- **MiningServer changes:**
+  - the DiamondFound payload adds a `FinderPosition` field
+  - a Studio-only `ServerStorage.DevTools.ForceDiamond` (BindableFunction, Invoke(player))
+    finds the diamond in the rock nearest that player
+- **Versioning:** every touched script is saved in `studio/*.lua`.
+  `studio/_receiver.py` (port 8793) lets Studio POST script sources into the repo.
+  To load from the repo, serve `studio/` on port 8792 and turn HttpEnabled on temporarily
+  (it's off by default; I turned it back off).
+
+Research:
+- `reports/AI Roblox game creation playbook.md`
+- `research_notes/yt/AI_GUIDES_FINDINGS.md`: 2025–26 AI-Roblox guides, with a 12-step plan.
+  Steps 2, 3, 7 and 10 are done. Steps 1, 4, 5, 6, 8, 9 and 11 are still open.
+- The YouTube map-tutorial transcripts are still IP-blocked.
+
+Still open:
+- Meshy v2 models: 12 in `art/models/`, not in the game. Uploading through the API key still
+  returns 403. Rufus can import them with the Meshy Roblox Bridge or File → Import 3D.
+- Zone landmarks and per-zone look briefs (plan steps 1 and 6).
+- Rare-coal tells (plan step 11).
+- Phone viewport check.
+
 ### [2026-10-06, night] — Rufus's Claude — Brick props, new furnace, mining back in the cave, hotbar + HUD
 Rufus's feedback:
 - The trees, rocks, shop and fountain looked weird.

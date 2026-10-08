@@ -2,3 +2,8 @@ ingame/
 for ai 3d/
 ui images/
 __pycache__/
+research_notes/yt/index*.json
+research_notes/yt/ui/
+research_notes/yt/map/
+art/models/
+art/models_v1/
